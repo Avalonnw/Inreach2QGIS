@@ -49,7 +49,7 @@ class SettingsDialog(QDialog):
         self._build_project_tab()
         self.tabs.currentChanged.connect(self._on_tab_changed)
 
-        buttons = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
+        buttons = QDialogButtonBox(QDialogButtonBox.StandardButton.Ok | QDialogButtonBox.StandardButton.Cancel)
         buttons.accepted.connect(self.accept)
         buttons.rejected.connect(self.reject)
         root.addWidget(buttons)
@@ -69,14 +69,14 @@ class SettingsDialog(QDialog):
         self.v1_endpoint = QLineEdit()
         self.v1_username = QLineEdit()
         self.v1_password = QLineEdit()
-        self.v1_password.setEchoMode(QLineEdit.Password)
+        self.v1_password.setEchoMode(QLineEdit.EchoMode.Password)
         form.addRow('V1 endpoint:', self.v1_endpoint)
         form.addRow('V1 login:', self.v1_username)
         form.addRow('V1 password:', self.v1_password)
 
         self.v2_endpoint = QLineEdit()
         self.v2_api_key = QLineEdit()
-        self.v2_api_key.setEchoMode(QLineEdit.Password)
+        self.v2_api_key.setEchoMode(QLineEdit.EchoMode.Password)
         form.addRow('V2 endpoint:', self.v2_endpoint)
         form.addRow('V2 API key:', self.v2_api_key)
 
@@ -102,10 +102,10 @@ class SettingsDialog(QDialog):
 
         self.devices = QTableWidget(0, 3)
         self.devices.setHorizontalHeaderLabels(['Display name', 'IMEI', 'Track color'])
-        self.devices.horizontalHeader().setSectionResizeMode(0, QHeaderView.Stretch)
-        self.devices.horizontalHeader().setSectionResizeMode(1, QHeaderView.ResizeToContents)
-        self.devices.horizontalHeader().setSectionResizeMode(2, QHeaderView.ResizeToContents)
-        self.devices.setSelectionBehavior(QAbstractItemView.SelectRows)
+        self.devices.horizontalHeader().setSectionResizeMode(0, QHeaderView.ResizeMode.Stretch)
+        self.devices.horizontalHeader().setSectionResizeMode(1, QHeaderView.ResizeMode.ResizeToContents)
+        self.devices.horizontalHeader().setSectionResizeMode(2, QHeaderView.ResizeMode.ResizeToContents)
+        self.devices.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectRows)
         self.devices.cellDoubleClicked.connect(self._pick_device_color)
         self.devices.cellChanged.connect(self._on_device_cell_changed)
         layout.addWidget(self.devices)
@@ -162,9 +162,9 @@ class SettingsDialog(QDialog):
 
         self.project_devices = QTableWidget(0, 2)
         self.project_devices.setHorizontalHeaderLabels(['Use', 'Device'])
-        self.project_devices.horizontalHeader().setSectionResizeMode(0, QHeaderView.ResizeToContents)
-        self.project_devices.horizontalHeader().setSectionResizeMode(1, QHeaderView.Stretch)
-        self.project_devices.setEditTriggers(QAbstractItemView.NoEditTriggers)
+        self.project_devices.horizontalHeader().setSectionResizeMode(0, QHeaderView.ResizeMode.ResizeToContents)
+        self.project_devices.horizontalHeader().setSectionResizeMode(1, QHeaderView.ResizeMode.Stretch)
+        self.project_devices.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
         layout.addWidget(self.project_devices)
 
         row = QHBoxLayout()
@@ -242,7 +242,7 @@ class SettingsDialog(QDialog):
         item = self.devices.item(row, 2)
         if item is None:
             item = QTableWidgetItem()
-            item.setFlags(item.flags() & ~Qt.ItemIsEditable)
+            item.setFlags(item.flags() & ~Qt.ItemFlag.ItemIsEditable)
             self.devices.setItem(row, 2, item)
 
         if auto:
@@ -251,7 +251,7 @@ class SettingsDialog(QDialog):
         else:
             color = normalize_track_color(color, imei)
 
-        item.setData(Qt.UserRole, bool(auto))
+        item.setData(Qt.ItemDataRole.UserRole, bool(auto))
         item.setText(color if color else 'AUTO')
 
         if color:
@@ -261,13 +261,13 @@ class SettingsDialog(QDialog):
         else:
             item.setBackground(QColor('#f0f0f0'))
             item.setForeground(QColor('#555555'))
-        item.setTextAlignment(Qt.AlignCenter)
+        item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
 
     def _on_device_cell_changed(self, row, column):
         if column != 1:
             return
         color_item = self.devices.item(row, 2)
-        if color_item is None or not bool(color_item.data(Qt.UserRole)):
+        if color_item is None or not bool(color_item.data(Qt.ItemDataRole.UserRole)):
             return
         imei_item = self.devices.item(row, 1)
         imei = imei_item.text().strip() if imei_item else ''
@@ -315,7 +315,7 @@ class SettingsDialog(QDialog):
             if not imei or imei in seen:
                 continue
             seen.add(imei)
-            if color_item and bool(color_item.data(Qt.UserRole)):
+            if color_item and bool(color_item.data(Qt.ItemDataRole.UserRole)):
                 color = normalize_track_color('', imei)
             else:
                 color = color_item.text().strip() if color_item else ''
@@ -342,9 +342,9 @@ class SettingsDialog(QDialog):
             row = self.project_devices.rowCount()
             self.project_devices.insertRow(row)
             check = QTableWidgetItem('')
-            check.setFlags(Qt.ItemIsEnabled | Qt.ItemIsUserCheckable)
-            check.setCheckState(Qt.Checked if item['imei'] in selected else Qt.Unchecked)
-            check.setData(Qt.UserRole, item['imei'])
+            check.setFlags(Qt.ItemFlag.ItemIsEnabled | Qt.ItemFlag.ItemIsUserCheckable)
+            check.setCheckState(Qt.CheckState.Checked if item['imei'] in selected else Qt.CheckState.Unchecked)
+            check.setData(Qt.ItemDataRole.UserRole, item['imei'])
             self.project_devices.setItem(row, 0, check)
             self.project_devices.setItem(row, 1, QTableWidgetItem(f"{item['name']}  ({item['imei']})"))
 
@@ -352,12 +352,12 @@ class SettingsDialog(QDialog):
         result = []
         for row in range(self.project_devices.rowCount()):
             item = self.project_devices.item(row, 0)
-            if item and item.checkState() == Qt.Checked:
-                result.append(str(item.data(Qt.UserRole)))
+            if item and item.checkState() == Qt.CheckState.Checked:
+                result.append(str(item.data(Qt.ItemDataRole.UserRole)))
         return result
 
     def _set_all_project_devices(self, checked):
-        state = Qt.Checked if checked else Qt.Unchecked
+        state = Qt.CheckState.Checked if checked else Qt.CheckState.Unchecked
         for row in range(self.project_devices.rowCount()):
             self.project_devices.item(row, 0).setCheckState(state)
 

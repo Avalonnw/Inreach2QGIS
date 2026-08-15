@@ -4,7 +4,11 @@ from datetime import date, datetime, timedelta, timezone
 
 from qgis.PyQt.QtCore import QTimer, QVariant
 from qgis.PyQt.QtGui import QColor
-from qgis.PyQt.QtWidgets import QAction
+
+try:
+    from qgis.PyQt.QtGui import QAction
+except ImportError:  # Qt5 / older QGIS
+    from qgis.PyQt.QtWidgets import QAction
 from qgis.core import (
     QgsApplication,
     QgsCategorizedSymbolRenderer,
@@ -123,7 +127,7 @@ class Inreach2QGISPlugin:
 
     def open_settings(self):
         dialog = SettingsDialog(self.store, self.iface.mainWindow())
-        if dialog.exec_():
+        if dialog.exec():
             self._invalidate_refresh()
             # Credentials live outside the project/cache key and can change in
             # this dialog, so invalidate cached history after any accepted edit.
