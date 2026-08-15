@@ -1,6 +1,7 @@
 # Inreach2QGIS
 
 QGIS plugin for displaying Garmin inReach Professional device positions and location history.
+
 **Tested with:** QGIS 3.44.x (Windows)
 
 Features:
