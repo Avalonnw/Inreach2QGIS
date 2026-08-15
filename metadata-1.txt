@@ -1,0 +1,13 @@
+[general]
+name=Inreach2QGIS
+qgisMinimumVersion=3.28
+description=Display and archive Garmin inReach Professional device positions and history in QGIS.
+version=0.5.0
+author=Avalonnw
+email=
+about=After installation, open Plugins > InReach2QGIS > Setup. Configure Connection, add Garmin devices under Devices, then use Current project to enable tracking, choose the History date range, and select which devices belong to this QGIS project. Plugins > InReach2QGIS > Refresh updates current positions manually; automatic refresh uses the configured interval. Saved QGIS projects keep Garmin data in a sibling project_name_inreach.gpkg archive.
+category=Web
+experimental=True
+deprecated=False
+hasProcessingProvider=no
+server=False
