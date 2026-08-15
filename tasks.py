@@ -9,7 +9,7 @@ class GarminRefreshTask(QgsTask):
     def __init__(self, client, imeis, generation, callback):
         super().__init__(
             'Refresh Garmin inReach positions',
-            QgsTask.CanCancel | QgsTask.Silent,
+            QgsTask.Flag.CanCancel | QgsTask.Flag.Silent,
         )
         self.client = client
         self.imeis = list(imeis)
@@ -41,7 +41,7 @@ class GarminHistoryTask(QgsTask):
     def __init__(self, client, imeis, start, end, cache_key, generation, callback):
         super().__init__(
             'Load Garmin inReach history',
-            QgsTask.CanCancel | QgsTask.Silent,
+            QgsTask.Flag.CanCancel | QgsTask.Flag.Silent,
         )
         self.client = client
         self.imeis = list(imeis)
