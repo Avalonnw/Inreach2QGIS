@@ -26,7 +26,6 @@ Features:
 - Exact duplicate Garmin history records are removed before local archive insertion.
 - All managed map layers are kept in an owned `Garmin inReach` layer-tree group.
 - Plugin commands are available from `Plugins > InReach2QGIS > Setup` and `Plugins > InReach2QGIS > Refresh`; the plugin does not create a toolbar.
-- Existing v0.1 device registry and V2 API key are read as a migration fallback.
 
 ## Project behaviour
 
