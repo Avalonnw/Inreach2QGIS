@@ -1,0 +1,65 @@
+name: "Release 0.5.1 once"
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - ".github/workflows/release-0.5.1-once.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out release commit
+        uses: actions/checkout@v6
+        with:
+          ref: 75b6ef6d6d84e0310a57ed8d6fe283b1367d0f6c
+          fetch-depth: 0
+
+      - name: Build installable plugin ZIP
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import zipfile
+
+          files = [
+              '__init__.py',
+              'api.py',
+              'dialogs.py',
+              'layer_tree_bridge_fix.py',
+              'metadata.txt',
+              'persistent_plugin.py',
+              'persistent_safety.py',
+              'plugin.py',
+              'runtime_fixes.py',
+              'settings.py',
+              'tasks.py',
+          ]
+
+          out = Path('Inreach2QGIS_v0.5.1.zip')
+          with zipfile.ZipFile(out, 'w', compression=zipfile.ZIP_DEFLATED, compresslevel=9) as zf:
+              for name in files:
+                  zf.write(name, arcname=f'inreach2qgis/{name}')
+          PY
+
+      - name: Create GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          gh release create v0.5.1 Inreach2QGIS_v0.5.1.zip \
+            --repo Avalonnw/Inreach2QGIS \
+            --target 75b6ef6d6d84e0310a57ed8d6fe283b1367d0f6c \
+            --title "Version 0.5.1" \
+            --notes "QGIS 3 / QGIS 4 compatibility release. Migrates Qt/QGIS enum usage for PyQt5/PyQt6, adds a dual-version QAction import, uses QDialog.exec(), and declares QGIS 4 compatibility. Runtime-tested on QGIS 3.44.x and QGIS 4.2.x on Windows, including Setup, Current/Refresh, History, and project/GeoPackage save-reopen behaviour."
+
+      - name: Remove merged topic branches
+        shell: bash
+        run: |
+          git push origin --delete codex/qgis4-compat || true
+          git push origin --delete noop-should-not-create || true
