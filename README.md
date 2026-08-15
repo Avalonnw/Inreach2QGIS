@@ -1,6 +1,7 @@
 # Inreach2QGIS
 
 QGIS plugin for displaying Garmin inReach Professional device positions and location history.
+**Tested with:** QGIS 3.44.x (Windows)
 
 Features:
 
@@ -78,7 +79,7 @@ Device A,123456789012345,#2563EB
 Device B,123456789012346,#DC2626
 ```
 
-Import merges by IMEI. Older two-column CSV files (`name,imei`) are still accepted and receive a stable default colour. Export never contains passwords or API keys.
+Import merges by IMEI. Export never contains passwords or API keys.
 
 ## 0.5.0 changes
 
