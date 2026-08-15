@@ -1,6 +1,7 @@
 [general]
 name=Inreach2QGIS
 qgisMinimumVersion=3.28
+qgisMaximumVersion=4.99
 description=Display and archive Garmin inReach Professional device positions and history in QGIS.
 version=0.5.0
 author=Avalonnw
