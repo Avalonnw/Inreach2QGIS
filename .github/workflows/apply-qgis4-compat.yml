@@ -1,0 +1,91 @@
+name: "Apply QGIS 4 compatibility patch"
+
+on:
+  push:
+    branches:
+      - codex/qgis4-compat
+    paths:
+      - ".github/workflows/apply-qgis4-compat.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out compatibility branch
+        uses: actions/checkout@v6
+        with:
+          ref: codex/qgis4-compat
+          fetch-depth: 0
+
+      - name: Apply exact compatibility replacements
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          def replace_exact(path, old, new, expected):
+              p = Path(path)
+              text = p.read_text(encoding='utf-8')
+              found = text.count(old)
+              if found != expected:
+                  raise SystemExit(
+                      f'{path}: expected {expected} occurrence(s) of {old!r}, found {found}'
+                  )
+              p.write_text(text.replace(old, new), encoding='utf-8')
+
+          # Qt enums: scoped forms are accepted by the Qt5/QGIS 3 and Qt6/QGIS 4 APIs.
+          replacements = [
+              ('dialogs.py', 'QDialogButtonBox.Ok', 'QDialogButtonBox.StandardButton.Ok', 1),
+              ('dialogs.py', 'QDialogButtonBox.Cancel', 'QDialogButtonBox.StandardButton.Cancel', 1),
+              ('dialogs.py', 'QLineEdit.Password', 'QLineEdit.EchoMode.Password', 2),
+              ('dialogs.py', 'QHeaderView.Stretch', 'QHeaderView.ResizeMode.Stretch', 2),
+              ('dialogs.py', 'QHeaderView.ResizeToContents', 'QHeaderView.ResizeMode.ResizeToContents', 3),
+              ('dialogs.py', 'QAbstractItemView.SelectRows', 'QAbstractItemView.SelectionBehavior.SelectRows', 1),
+              ('dialogs.py', 'QAbstractItemView.NoEditTriggers', 'QAbstractItemView.EditTrigger.NoEditTriggers', 1),
+              ('dialogs.py', 'Qt.ItemIsEditable', 'Qt.ItemFlag.ItemIsEditable', 1),
+              ('dialogs.py', 'Qt.UserRole', 'Qt.ItemDataRole.UserRole', 5),
+              ('dialogs.py', 'Qt.AlignCenter', 'Qt.AlignmentFlag.AlignCenter', 1),
+              ('dialogs.py', 'Qt.ItemIsEnabled', 'Qt.ItemFlag.ItemIsEnabled', 1),
+              ('dialogs.py', 'Qt.ItemIsUserCheckable', 'Qt.ItemFlag.ItemIsUserCheckable', 1),
+              ('dialogs.py', 'Qt.Checked', 'Qt.CheckState.Checked', 3),
+              ('dialogs.py', 'Qt.Unchecked', 'Qt.CheckState.Unchecked', 2),
+              ('persistent_plugin.py', 'QgsVectorFileWriter.CreateOrOverwriteLayer', 'QgsVectorFileWriter.ActionOnExistingFile.CreateOrOverwriteLayer', 1),
+              ('persistent_plugin.py', 'QgsVectorFileWriter.CreateOrOverwriteFile', 'QgsVectorFileWriter.ActionOnExistingFile.CreateOrOverwriteFile', 1),
+              ('persistent_plugin.py', 'QgsVectorFileWriter.NoError', 'QgsVectorFileWriter.WriterError.NoError', 1),
+              ('plugin.py', 'dialog.exec_()', 'dialog.exec()', 1),
+          ]
+          for args in replacements:
+              replace_exact(*args)
+
+          # QAction moved from QtWidgets in Qt5 to QtGui in Qt6. Prefer the Qt6
+          # location, with the old Qt5 location as a narrowly scoped fallback.
+          replace_exact(
+              'plugin.py',
+              'from qgis.PyQt.QtGui import QColor\nfrom qgis.PyQt.QtWidgets import QAction\n',
+              "from qgis.PyQt.QtGui import QColor\n\ntry:\n    from qgis.PyQt.QtGui import QAction\nexcept ImportError:  # Qt5 / older QGIS\n    from qgis.PyQt.QtWidgets import QAction\n",
+              1,
+          )
+          PY
+
+      - name: Validate syntax and requested legacy forms
+        shell: bash
+        run: |
+          python -m py_compile dialogs.py tasks.py persistent_plugin.py plugin.py
+          git diff --check
+          if grep -En 'QDialogButtonBox\.(Ok|Cancel)|QLineEdit\.Password|QHeaderView\.(Stretch|ResizeToContents)|QAbstractItemView\.(SelectRows|NoEditTriggers)|Qt\.(UserRole|AlignCenter|ItemIsEditable|ItemIsEnabled|ItemIsUserCheckable|Checked|Unchecked)|QgsTask\.(CanCancel|Silent)|QgsVectorFileWriter\.(CreateOrOverwriteLayer|CreateOrOverwriteFile|NoError)|exec_\(' dialogs.py tasks.py persistent_plugin.py plugin.py; then
+            echo 'Legacy QGIS 4-incompatible form remains.'
+            exit 1
+          fi
+
+      - name: Commit compatibility patch
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add dialogs.py persistent_plugin.py plugin.py
+          git diff --cached --stat
+          git commit -m "Use scoped Qt and QGIS compatibility APIs"
+          git push origin HEAD:codex/qgis4-compat
