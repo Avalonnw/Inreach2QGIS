@@ -2,7 +2,7 @@
 
 QGIS plugin for displaying Garmin inReach Professional device positions and location history.
 
-**Tested with:** QGIS 3.44.x (Windows)
+**Tested with:** QGIS 3.44.x and QGIS 4.2.x (Windows)
 
 Features:
 
@@ -80,6 +80,13 @@ Device B,123456789012346,#DC2626
 ```
 
 Import merges by IMEI. Export never contains passwords or API keys.
+
+## 0.5.1 changes
+
+- Added dual QGIS 3 / QGIS 4 compatibility by migrating Qt and QGIS enum usage to scoped forms supported by PyQt5 and PyQt6.
+- Added a Qt5/Qt6-compatible `QAction` import and replaced the legacy `QDialog.exec_()` call with `exec()`.
+- Declared QGIS 4 compatibility through `qgisMaximumVersion=4.99`.
+- Runtime-tested the same plugin build in QGIS 3.44.x and QGIS 4.2.x on Windows, including Setup, Current/Refresh, History and project/GeoPackage save-reopen behaviour.
 
 ## 0.5.0 changes
 
