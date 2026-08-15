@@ -105,9 +105,9 @@ class PersistentInreach2QGISPlugin(Inreach2QGISPlugin):
         options.fileEncoding = 'UTF-8'
         options.layerName = table_name
         options.actionOnExistingFile = (
-            QgsVectorFileWriter.CreateOrOverwriteLayer
+            QgsVectorFileWriter.ActionOnExistingFile.CreateOrOverwriteLayer
             if os.path.exists(path)
-            else QgsVectorFileWriter.CreateOrOverwriteFile
+            else QgsVectorFileWriter.ActionOnExistingFile.CreateOrOverwriteFile
         )
         result = QgsVectorFileWriter.writeAsVectorFormatV3(
             layer,
@@ -116,7 +116,7 @@ class PersistentInreach2QGISPlugin(Inreach2QGISPlugin):
             options,
         )
         code = result[0] if isinstance(result, (tuple, list)) else result
-        if code != QgsVectorFileWriter.NoError:
+        if code != QgsVectorFileWriter.WriterError.NoError:
             detail = ''
             if isinstance(result, (tuple, list)) and len(result) > 1:
                 detail = str(result[1] or '')
